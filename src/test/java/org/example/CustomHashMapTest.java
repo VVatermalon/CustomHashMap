@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,10 +27,14 @@ class CustomHashMapTest {
 
     @Test
     void get() {
+        Integer expected = VALUE;
+        Integer actual = TEST_HASH_MAP.get(0);
+        assertEquals(expected, actual);
     }
 
     @Test
     void containsKey() {
+        assertTrue(TEST_HASH_MAP.containsKey(0));
     }
 
     @Test
@@ -38,6 +44,24 @@ class CustomHashMapTest {
             hashMap.put(key, VALUE);
         }
         int expected = 13;
+        int actual = hashMap.size;
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void putIdentical() {
+        Integer expected = 10;
+        TEST_HASH_MAP.put(0, expected);
+        Integer actual = TEST_HASH_MAP.get(0);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void putMany() {
+        CustomHashMap<Integer, Integer> hashMap = new CustomHashMap<>();
+        int expected = 100000;
+        IntStream.range(0, 100000).limit(expected)
+                .forEach(i -> hashMap.put(i, VALUE));
         int actual = hashMap.size;
         assertEquals(expected, actual);
     }
@@ -65,22 +89,20 @@ class CustomHashMapTest {
     }
 
     @Test
+    void removeAbsent() {
+        Integer actual = TEST_HASH_MAP.remove(-100);
+        assertNull(actual);
+    }
+
+
+    @Test
     void clear() {
+        TEST_HASH_MAP.clear();
+        assertTrue(TEST_HASH_MAP.isEmpty());
     }
 
     @Test
     void containsValue() {
-    }
-
-    @Test
-    void keySet() {
-    }
-
-    @Test
-    void values() {
-    }
-
-    @Test
-    void entrySet() {
+        assertTrue(TEST_HASH_MAP.containsValue(12));
     }
 }
