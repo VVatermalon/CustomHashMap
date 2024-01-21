@@ -2,6 +2,9 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CustomHashMapTest {
@@ -10,6 +13,15 @@ class CustomHashMapTest {
             9084532, 47732556, 125567, -656454, 235, 0, 1
     };
     private static final Integer VALUE = 12;
+
+    private static final CustomHashMap<Integer, Integer> TEST_HASH_MAP;
+
+    static {
+        TEST_HASH_MAP = new CustomHashMap<>(14);
+        for(Integer key:KEYS) {
+            TEST_HASH_MAP.put(key, VALUE);
+        }
+    }
 
     @Test
     void get() {
@@ -32,10 +44,24 @@ class CustomHashMapTest {
 
     @Test
     void putAll() {
+        Map<Integer, Integer> map = new HashMap<>();
+        for(Integer key:KEYS) {
+            map.put(key, VALUE);
+        }
+        CustomHashMap<Integer, Integer> hashMap = new CustomHashMap<>(map);
+        int expected = 13;
+        int actual = hashMap.size;
+        assertEquals(expected, actual);
     }
 
     @Test
     void remove() {
+        Integer actual = TEST_HASH_MAP.remove(1223536);
+        Integer expected = VALUE;
+        assertEquals(expected, actual);
+        expected = 12;
+        actual = TEST_HASH_MAP.size;
+        assertEquals(expected, actual);
     }
 
     @Test
