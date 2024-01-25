@@ -189,9 +189,9 @@ public class CustomHashMap<K,V> {
                     oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // увеличиваем вдвое
         }
-        else if (oldThr > 0) // initial capacity was placed in threshold
+        else if (oldThr > 0)
             newCap = oldThr;
-        else {               // zero initial threshold signifies using defaults
+        else {
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
