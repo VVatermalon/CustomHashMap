@@ -364,13 +364,13 @@ public class CustomHashMap<K,V> {
                     oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // увеличиваем вдвое
         }
-        else if (oldThr > 0)
+        else if (oldThr > 0) // новая таблица, но конструктор с capacity
             newCap = oldThr;
-        else {
+        else { // использовался конструктор по умолчанию
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
-        if (newThr == 0) {
+        if (newThr == 0) { // надо рассчитать новую threshold, используя заданный размер
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                     (int)ft : Integer.MAX_VALUE);
@@ -385,20 +385,20 @@ public class CustomHashMap<K,V> {
                     oldTab[j] = null;
                     if (e.next == null)
                         newTab[e.hash & (newCap - 1)] = e;
-                    else { // preserve order
+                    else { // сохраняем порядок
                         CustomHashMap.Node<K,V> loHead = null, loTail = null;
                         CustomHashMap.Node<K,V> hiHead = null, hiTail = null;
                         CustomHashMap.Node<K,V> next;
                         do {
                             next = e.next;
-                            if ((e.hash & oldCap) == 0) {
+                            if ((e.hash & oldCap) == 0) { // здесь элементы, индекс которых не изменится
                                 if (loTail == null)
                                     loHead = e;
                                 else
                                     loTail.next = e;
                                 loTail = e;
                             }
-                            else {
+                            else { // здесь индекс сдвинется
                                 if (hiTail == null)
                                     hiHead = e;
                                 else
@@ -412,7 +412,7 @@ public class CustomHashMap<K,V> {
                         }
                         if (hiTail != null) {
                             hiTail.next = null;
-                            newTab[j + oldCap] = hiHead;
+                            newTab[j + oldCap] = hiHead; // именно такой индекс получился, если бы считали по новой
                         }
                     }
                 }
