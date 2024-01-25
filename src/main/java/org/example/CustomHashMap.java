@@ -1,11 +1,61 @@
 package org.example;
 
 import java.util.*;
-
+/**
+ * Хэш таблица, представляющая вариацию класса {@code HashMap}.
+ * Несинхронизирован, позволяет добавлять {@code null} значения и {@code null} ключ.
+ * Этот класс не гарантирует упорядоченность элементов и то, что со временем порядок
+ * элементов останется тем же со временем.
+ *
+ * <p>Класс предоставляет постоянное время выполнения основных операций
+ * ({@code get} и {@code put}), предполагая что хэш функция распределеет элементы
+ * равномерно среди корзин.
+ *
+ * <p>Сущность {@code CustomHashMap} обладает двумя параметрами, влияющими
+ * на ее производительность: <i>initial capacity</i> и <i>load factor</i>.
+ * <i>Capacity</i> это число корзин в хэш таблице, и <i>initial capacity</i>
+ * это число корзин в момент создания таблицы. <i>Load factor</i> это мера того,
+ * насколько заполненной разрешено быть хэш таблице до того, как ее размер
+ * автоматически увеличится.
+ * Когда число элементов хэш таблицы превысит произведение коэффициента загрузки
+ * и текущей емкости, хэш таблица будет перехэширована и размер таблицы увеличится
+ * примерно вдвое.
+ *
+ * <p>Предполагаемое число элементов в таблице и ее коэффициент загрузки должны
+ * быть учтены при задании начальной емкости, чтобы минимизировать число
+ * операций перехеширования. Если начальная емкость больше чем максимальное число
+ * элементов деленное на коэфициент загрузки, то операция перехеширования никогда
+ * не произойдет.
+ *
+ * @param <K> тип ключа, поддерживаемого этой таблицей
+ * @param <V> тип сопоставимых значений
+ *
+ * @author  Скарульская Елизавета
+ * @see     Object#hashCode()
+ * @see     Collection
+ * @see     Map
+ * @see     TreeMap
+ * @see     Hashtable
+ */
 public class CustomHashMap<K,V> {
+    /**
+     * Значение начальной емкости по умолчанию - должно быть степенью двойки.
+     */
     static final int DEFAULT_INITIAL_CAPACITY = 16;
+    /**
+     * Максимальная емкость, используется, когда более большое значение
+     * указывается в любом конструкторе с параметрами.
+     * Должна быть степенью двойки.
+     */
     static final int MAXIMUM_CAPACITY = 1 << 30;
+    /**
+     * Коэффициент загрузки, используется если он не задается в конструкторе.
+     */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+    /**
+     * Сущности, которые хранятся в ячейках таблицы.
+     */
     static class Node<K,V> implements Map.Entry<K,V> {
         final int hash;
         final K key;
@@ -42,10 +92,20 @@ public class CustomHashMap<K,V> {
                     && Objects.equals(value, e.getValue());
         }
     }
+    /**
+     * Вычисляет key.hashCode() и распространяет более высокие биты
+     * хэша на более низкие. Так как в таблице используется битовая маска -
+     * степень двойки для вычисления текущей ячейки таблицы, то
+     * значения хэшей, которые отличаются лишь старшими битами будут постоянно
+     * сталкиваться.
+     */
     static int hash(Object key) {
         int h;
         return (key == null) ? 0 : key.hashCode() >>> 16 & key.hashCode();
     }
+    /**
+     * Возвращает степень двойки для заданной емкости.
+     */
     static int tableSizeFor(int cap) {
         cap = cap - 1;
 
@@ -57,10 +117,38 @@ public class CustomHashMap<K,V> {
 
         return Math.min(mask, MAXIMUM_CAPACITY);
     }
+    /**
+     * Таблица, инициализируемая при первом использовании
+     * и изменяющая размер по необходимости.
+     * Ее размер после инициализации всегда является степенью двойки.
+     */
     CustomHashMap.Node<K,V>[] table;
+    /**
+     * Число пар ключ-значение, хранимое в таблице.
+     */
     int size;
+    /**
+     * Следующее значение размера, при котором необходимо изменить размер таблицы
+     * (capacity * load factor).
+     */
     int threshold;
+    /**
+     * Коэффициент загрузки для текущей таблицы.
+     */
     final float loadFactor;
+    /**
+     * Создает пустую {@code CustomHashMap} с указанной начальной емкостью
+     * и коэффициентом загрузки.
+     *
+     * @apiNote
+     * Чтобы создать {@code CustomHashMap} с начальной емкостью, которая
+     * вмещает ожидаемое число пар, используйте {@link #CustomHashMap(int) newCustomHashMap}.
+     *
+     * @param  initialCapacity начальная емкость
+     * @param  loadFactor      коэффициент загрузки
+     * @throws IllegalArgumentException если начальная емкость отрицательная
+     * или коэффициент загрузки не положительный.
+     */
     public CustomHashMap(int initialCapacity, float loadFactor) {
         if (initialCapacity < 0)
             throw new IllegalArgumentException("Illegal initial capacity: " +
@@ -73,17 +161,42 @@ public class CustomHashMap<K,V> {
         this.loadFactor = loadFactor;
         this.threshold = tableSizeFor(initialCapacity);
     }
+    /**
+     * Создает пустую {@code CustomHashMap} с заданной начальной емкостью
+     * и со значением коэффициента загрузки по умолчанию (0.75).
+     *
+     * @param  initialCapacity начальная емкость
+     * @throws IllegalArgumentException если начальная емкость отрицательная.
+     */
     public CustomHashMap(int initialCapacity) {
         this(initialCapacity, DEFAULT_LOAD_FACTOR);
     }
+    /**
+     * Создает пустую {@code CustomHashMap} со значением начальной емкости
+     * по умолчанию (16) и со значением коэффициента загрузки (0.75).
+     */
     public CustomHashMap() {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
     }
+    /**
+     * Создает новую {@code CustomHashMap} с теми же элементами, что
+     * и заданная {@code Map}. {@code CustomHashMap} создается со значением
+     * коэффициента загрузки по умолчанию (0.75) и с начальной емкостью, достаточной
+     * для вмещения всех элементов заданной {@code Map}.
+     *
+     * @param   m таблица, элементы которой будут размещены в текущей таблице
+     * @throws  NullPointerException если указанная таблица равна null
+     */
     public CustomHashMap(Map<? extends K, ? extends V> m) {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
-        putMapEntries(m, false);
+        putMapEntries(m);
     }
-    void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
+    /**
+     * Помещает все элементы указанной таблицы в текущую таблицу.
+     *
+     * @param m указанная таблица.
+     */
+    void putMapEntries(Map<? extends K, ? extends V> m) {
         int s = m.size();
         if (s > 0) {
             if (table == null) {
@@ -104,16 +217,42 @@ public class CustomHashMap<K,V> {
             }
         }
     }
+    /**
+     * Возвращает число пар ключ-значение, хранимых в этой таблице
+     *
+     * @return число пар ключ-значение, хранимых в этой таблице
+     */
     public int size() {
         return size;
     }
+    /**
+     * Возвращает {@code true} если эта таблица не содержит значений.
+     *
+     * @return {@code true} если эта таблица не содержит значений.
+     */
     public boolean isEmpty() {
         return size == 0;
     }
+    /**
+     * Возвращает значение, с которым связано значение текущего ключа или
+     * {@code null} если эта таблица не содержит значение для этого ключа.
+     *
+     * <p>Возвращаемое значение {@code null} не <i>обязательно</i>
+     * указывает что таблица не содержит значение для этого ключа,
+     * возможно, что в таблице хранится значение {@code null} под указанным ключом.
+     * {@link #containsKey containsKey} операция может быть использована для различия
+     * этих ситуаций.
+     *
+     * @see #put(Object, Object)
+     */
     public V get(Object key) {
         CustomHashMap.Node<K,V> e;
         return (e = getNode(key)) == null ? null : e.value;
     }
+    /**
+     * @param key ключ
+     * @return ячейку или null при отсутствии.
+     */
     CustomHashMap.Node<K,V> getNode(Object key) {
         CustomHashMap.Node<K,V> first, e;
         int tableLength, hash;
@@ -133,12 +272,39 @@ public class CustomHashMap<K,V> {
         }
         return null;
     }
+    /**
+     * Возвращает {@code true} если данная таблица содержит значение для
+     * указанного ключа.
+     *
+     * @param   key   Ключ, наличие которого необходимо проверить
+     * @return {@code true} если данная таблица содержит значение для
+     * указанного ключа.
+     */
     public boolean containsKey(Object key) {
         return getNode(key) != null;
     }
+    /**
+     * Сопоставляет указанное значение с указанным ключом в таблице.
+     * Если до этого в таблице хранилось значение для этого ключа, старое
+     * значение заменяется.
+     *
+     * @param key ключ с которым сопоставляется указанное значение
+     * @param value значение с которым сопоставляется указанный ключ
+     * @return предыдущее значение, связанное с {@code key}, или
+     *         {@code null} нет связанного значения с {@code key}.
+     *         (Возврат {@code null} также может показывать, что
+     *         ранее в таблице хранилось значение {@code null}
+     *         связанное с ключом {@code key}.)
+     */
     public V put(K key, V value) {
         return putVal(hash(key), key, value);
     }
+    /**
+     * @param hash хэш ключа
+     * @param key ключ
+     * @param value значение которое необходимо разместить
+     * @return предыдущее значение, или null если таковое отсутствует.
+     */
     V putVal(int hash, K key, V value) {
         CustomHashMap.Node<K,V>[] tab;
         CustomHashMap.Node<K,V> p;
@@ -175,6 +341,15 @@ public class CustomHashMap<K,V> {
             resize();
         return null;
     }
+    /**
+     * Инициализирует или удваивает размер таблицы. Если null, то
+     * выделяет память в соответствии со значением начальной емкости.
+     * Иначе, так как используется расширение по степени двойки, то
+     * элементы из каждой ячейки должны либо остаться с тем же индексом,
+     * либо должны быть перемещены со смещением степени двойки в новой таблице.
+     *
+     * @return таблицу
+     */
     CustomHashMap.Node<K,V>[] resize() {
         CustomHashMap.Node<K,V>[] oldTab = table;
         int oldCap = (oldTab == null) ? 0 : oldTab.length;
@@ -245,14 +420,36 @@ public class CustomHashMap<K,V> {
         }
         return newTab;
     }
+    /**
+     * Копирует все элементы из указанной таблицы в текущую.
+     * Новые элементы заменят любые элементы, хранимые до этого
+     * по тем же ключам.
+     *
+     * @param m элементы, помещаемые в текущую таблицу
+     * @throws NullPointerException если указанная таблица равна null
+     */
     public void putAll(Map<? extends K, ? extends V> m) {
-        putMapEntries(m, true);
+        putMapEntries(m);
     }
+    /**
+     * Удаляет значение по указанному ключу, если оно существует.
+     *
+     * @param  key ключ, значение по которому должно быть удалено.
+     * @return предыдущее значение, связанное с {@code key}, или
+     *         {@code null} если значение отсутствует {@code key}.
+     *         (Значение {@code null} также может говорить, что ранее
+     *         по этому ключу хранилось значение {@code null}.)
+     */
     public V remove(Object key) {
         CustomHashMap.Node<K,V> e;
         return (e = removeNode(hash(key), key)) == null ?
                 null : e.value;
     }
+    /**     *
+     * @param hash хэш ключа
+     * @param key ключ
+     * @return элемент или null, если таковой отсутствует.
+     */
     CustomHashMap.Node<K,V> removeNode(int hash, Object key) {
         CustomHashMap.Node<K,V>[] tab; CustomHashMap.Node<K,V> p; int n, index;
         if ((tab = table) != null && (n = tab.length) > 0 &&
@@ -283,6 +480,9 @@ public class CustomHashMap<K,V> {
         }
         return null;
     }
+    /**
+     * Удаляет все элементы текущей таблицы.
+     */
     public void clear() {
         CustomHashMap.Node<K,V>[] tab;
         if ((tab = table) != null && size > 0) {
@@ -290,6 +490,14 @@ public class CustomHashMap<K,V> {
             Arrays.fill(tab, null);
         }
     }
+    /**
+     * Возвращает {@code true} если таблица хранит один или более
+     * ключей, связанных с заданным значением.
+     *
+     * @param value значение, наличие которого необходимо проверить
+     * @return {@code true} если таблица хранит один или более
+     *      * ключей, связанных с заданным значением.
+     */
     public boolean containsValue(Object value) {
         CustomHashMap.Node<K,V>[] tab; V v;
         if ((tab = table) != null && size > 0) {
@@ -303,6 +511,9 @@ public class CustomHashMap<K,V> {
         }
         return false;
     }
+    /**
+     * @return Set, состоящий из ключей заданной таблицы.
+     */
     public Set<K> keySet() {
         Set<K> keySet = new HashSet<K>(table.length);
         for (CustomHashMap.Node<K, V> e : table) {
@@ -312,6 +523,9 @@ public class CustomHashMap<K,V> {
         }
         return keySet;
     }
+    /**
+     * @return Collection, состоящую из значений заданной таблицы.
+     */
     public Collection<V> values() {
         Collection<V> values = new ArrayList<V>(table.length);
         for (CustomHashMap.Node<K, V> e : table) {
@@ -321,6 +535,9 @@ public class CustomHashMap<K,V> {
         }
         return values;
     }
+    /**
+     * @return Set, состоящий из элементов (пар ключ-значение) заданной таблицы.
+     */
     public Set<Map.Entry<K, V>> entrySet() {
         Set<Map.Entry<K, V>> keySet = new HashSet<>(table.length);
         for (CustomHashMap.Node<K, V> e : table) {
@@ -330,6 +547,9 @@ public class CustomHashMap<K,V> {
         }
         return keySet;
     }
+    /**
+     * Создает элемент таблицы
+     */
     CustomHashMap.Node<K,V> newNode(int hash, K key, V value, CustomHashMap.Node<K,V> next) {
         return new CustomHashMap.Node<>(hash, key, value, next);
     }
