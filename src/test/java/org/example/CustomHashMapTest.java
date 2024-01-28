@@ -1,5 +1,6 @@
 package org.example;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -16,9 +17,9 @@ class CustomHashMapTest {
     };
     private static final Integer VALUE = 12;
 
-    private static final CustomHashMap<Integer, Integer> TEST_HASH_MAP;
-
-    static {
+    private CustomHashMap<Integer, Integer> TEST_HASH_MAP;
+    @BeforeEach
+    void setUp() {
         TEST_HASH_MAP = new CustomHashMap<>(14);
         for(Integer key:KEYS) {
             TEST_HASH_MAP.put(key, VALUE);
@@ -34,17 +35,13 @@ class CustomHashMapTest {
 
     @Test
     void containsKey() {
-        assertTrue(TEST_HASH_MAP.containsKey(0));
+        assertTrue(TEST_HASH_MAP.containsKey(1));
     }
 
     @Test
     void put() {
-        CustomHashMap<Integer, Integer> hashMap = new CustomHashMap<>();
-        for(Integer key:KEYS) {
-            hashMap.put(key, VALUE);
-        }
         int expected = 13;
-        int actual = hashMap.size;
+        int actual = TEST_HASH_MAP.size;
         assertEquals(expected, actual);
     }
 
@@ -57,13 +54,30 @@ class CustomHashMapTest {
     }
 
     @Test
-    void putMany() {
+    void manyValues() {
         CustomHashMap<Integer, Integer> hashMap = new CustomHashMap<>();
         int expected = 100000;
         IntStream.range(0, 100000).limit(expected)
-                .forEach(i -> hashMap.put(i, VALUE));
+                .forEach(i -> hashMap.put(i, i));
         int actual = hashMap.size;
         assertEquals(expected, actual);
+        IntStream.range(0, 100000).limit(expected)
+                .forEach(e->assertEquals(hashMap.get(e), e));
+        IntStream.range(0, 100000).limit(expected)
+                .forEach(hashMap::remove);
+        assertTrue(hashMap.isEmpty());
+    }
+
+    @Test
+    void manySameValues() {
+        CustomHashMap<Integer, Integer> hashMap = new CustomHashMap<>();
+        for (int i = 0; i < 100000; i++) {
+            hashMap.put(1, 1);
+        }
+        assertEquals(1, hashMap.size);
+        for (int i = 0; i < 100000; i++) {
+            assertNull(hashMap.remove(-100));
+        }
     }
 
     @Test

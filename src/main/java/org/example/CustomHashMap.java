@@ -524,7 +524,7 @@ public class CustomHashMap<K,V> {
         return keySet;
     }
     /**
-     * @return Collection, состоящую из значений заданной таблицы
+     * @return Collection, состоящую из значений заданной таблицы.
      */
     public Collection<V> values() {
         Collection<V> values = new ArrayList<V>(table.length);
